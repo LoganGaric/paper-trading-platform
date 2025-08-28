@@ -396,10 +396,6 @@ ENABLE_METRICS=true
 - **Buying Power Checks**: Prevent over-leverage
 
 
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
 ---
 
 **Built with ❤️ for traders and developers who appreciate production-quality code.**
