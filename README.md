@@ -9,9 +9,10 @@ A production-ready, full-stack TypeScript paper trading platform with real-time 
 ## ✨ Features
 
 ### 🏦 Core Trading Features
-- **Real-time Market Simulation** - Realistic price movements with configurable volatility
+- **Always-On Market Simulation** - 24/7 market access for demo testing with enhanced volatility
+- **Real-time Price Movements** - Dynamic price simulation with 8% volatility overlay for active testing
 - **Advanced Order Management** - Market, limit orders with complete lifecycle tracking
-- **Portfolio Tracking** - Real-time positions, P&L, and account balances
+- **Portfolio Tracking** - Real-time positions, P&L, and account balances with live change calculations
 - **Risk Management Engine** - Pre-trade risk checks, position limits, and kill switches
 - **WebSocket Integration** - Live updates for orders, fills, positions, and market data
 - **Matching Engine** - FIFO order matching with partial fills support
@@ -381,11 +382,12 @@ ENABLE_METRICS=true
 
 ### Market Simulation Settings
 
-- **Volatility**: 1.2% typical price movements per update
-- **Update Frequency**: Every 2-3 seconds during market hours  
-- **Market Hours**: 9:30 AM - 4:00 PM EST (weekdays)
+- **Always-On Operation**: 24/7 market simulation for continuous demo testing
+- **Enhanced Volatility**: 8% random price movements overlay for dynamic testing experience
+- **Update Frequency**: Every 2 seconds for real-time price updates
+- **Base Data**: CSV market data with additional volatility enhancement
 - **Instruments**: AAPL, TSLA, GOOGL, MSFT, NVDA, SPY
-- **Starting Prices**: Based on recent market data
+- **Price Calculations**: Live change tracking with proper percentage and dollar calculations
 
 ### Risk Management
 
