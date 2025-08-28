@@ -563,8 +563,22 @@ export class ExecutionSimulator {
         }
 
         this.currentIndices.set(symbol, currentIndex);
-        const newBar = bars[currentIndex];
+        const originalBar = bars[currentIndex];
         const previousBar = this.currentPrices.get(symbol);
+        
+        // Add random volatility for more dramatic testing/demo purposes
+        const volatilityMultiplier = 0.08; // 8% max random movement (very high for testing)
+        const randomChange = (Math.random() - 0.5) * 2 * volatilityMultiplier; // -8% to +8%
+        const volatilePrice = originalBar.close * (1 + randomChange);
+        
+        // Create modified bar with volatile price
+        const newBar = {
+          ...originalBar,
+          close: Math.max(volatilePrice, 0.01), // Ensure price never goes negative
+          open: originalBar.open, // Keep original open for reference
+          high: Math.max(originalBar.high, volatilePrice),
+          low: Math.min(originalBar.low, volatilePrice)
+        };
         this.currentPrices.set(symbol, newBar);
 
         // Update instrument price

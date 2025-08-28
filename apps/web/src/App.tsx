@@ -585,24 +585,12 @@ const PositionsSection: React.FC<{
 // Market simulation system
 const MARKET_DATA: { [key: string]: { basePrice: number, currentPrice: number, trend: number, lastUpdate: number } } = {};
 
-const isMarketOpen = (simulateOpen = false) => {
-  // If simulation mode is enabled, always return true
-  if (simulateOpen) return true;
-  
-  const now = new Date();
-  const day = now.getDay(); // 0 = Sunday, 6 = Saturday
-  const hour = now.getHours();
-  const minutes = now.getMinutes();
-  const currentTime = hour * 100 + minutes;
-  
-  // Market closed on weekends
-  if (day === 0 || day === 6) return false;
-  
-  // Market hours: 9:30 AM - 4:00 PM ET (simplified to local time)
-  return currentTime >= 930 && currentTime < 1600;
+// Removed market hours restriction - simulation always runs for testing/demo purposes
+const isMarketOpen = () => {
+  return true; // Always open for continuous testing and demo
 };
 
-const getRealisticPrice = (symbol: string, avgPrice: number, simulateOpen = false) => {
+const getRealisticPrice = (symbol: string, avgPrice: number) => {
   const now = Date.now();
   
   // Initialize market data for new symbols
@@ -618,8 +606,8 @@ const getRealisticPrice = (symbol: string, avgPrice: number, simulateOpen = fals
   const data = MARKET_DATA[symbol];
   const timeSinceUpdate = now - data.lastUpdate;
   
-  // Only update price if market is open and enough time has passed (1 second for faster testing)
-  if (isMarketOpen(simulateOpen) && timeSinceUpdate > 1000) {
+  // Only update price if enough time has passed (1 second for faster testing) - market always open
+  if (timeSinceUpdate > 1000) {
     // Increased volatility for testing and demonstration purposes
     const volatility = 0.045; // 4.5% typical movement (increased from 1.2%)
     const trendInfluence = 0.6; // Slightly less trend persistence
@@ -649,12 +637,12 @@ const getRealisticPrice = (symbol: string, avgPrice: number, simulateOpen = fals
     data.lastUpdate = now;
   }
   
-  // If market is closed, return last price (no movement)
+  // Return current price (market always active)
   return data.currentPrice;
 };
 
-const getBidAskPrice = (symbol: string, avgPrice: number, side: 'BUY' | 'SELL', simulateOpen = false) => {
-  const midPrice = getRealisticPrice(symbol, avgPrice, simulateOpen);
+const getBidAskPrice = (symbol: string, avgPrice: number, side: 'BUY' | 'SELL') => {
+  const midPrice = getRealisticPrice(symbol, avgPrice);
   const spread = midPrice * 0.001; // 0.1% spread (realistic for liquid stocks)
   
   if (side === 'BUY') {
@@ -730,7 +718,7 @@ function App(): JSX.Element {
   const [orderCount, setOrderCount] = useState(0);
   const [recentOrders, setRecentOrders] = useState<Array<{symbol: string, side: string, quantity: number, type: string, price?: number, time: string}>>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [simulateMarketOpen, setSimulateMarketOpen] = useState(false);
+  // Removed simulateMarketOpen - market always active for demo
   const [priceUpdateTrigger, setPriceUpdateTrigger] = useState(0);
   const [backendPrices, setBackendPrices] = useState<Record<string, {price: number, previousClose: number, change: number, changePercent: number}>>({});
 
@@ -743,19 +731,20 @@ function App(): JSX.Element {
         const prices: Record<string, {price: number, previousClose: number, change: number, changePercent: number}> = {};
         
         status.currentPrices.forEach((priceData: any) => {
-          const change = priceData.price - (backendPrices[priceData.symbol]?.previousClose || priceData.price);
-          const changePercent = (change / (backendPrices[priceData.symbol]?.previousClose || priceData.price)) * 100;
+          const previousPrice = backendPrices[priceData.symbol]?.price || priceData.price;
+          const change = priceData.price - previousPrice;
+          const changePercent = previousPrice > 0 ? (change / previousPrice) * 100 : 0;
           
           prices[priceData.symbol] = {
             price: priceData.price,
-            previousClose: backendPrices[priceData.symbol]?.price || priceData.price,
+            previousClose: previousPrice, // Keep the previous price as previous close
             change,
             changePercent
           };
         });
         
         setBackendPrices(prices);
-        setSimulateMarketOpen(status.isRunning);
+        // Market simulation always active - no toggle needed
         return prices;
       }
     } catch (error) {
@@ -769,24 +758,20 @@ function App(): JSX.Element {
     fetchBackendPrices();
   }, []);
 
-  // Poll for price updates when simulator is running
+  // Poll for price updates continuously
   useEffect(() => {
-    if (simulateMarketOpen) {
-      const interval = setInterval(fetchBackendPrices, 2000); // Poll every 2 seconds
-      return () => clearInterval(interval);
-    }
-  }, [simulateMarketOpen]);
+    const interval = setInterval(fetchBackendPrices, 2000); // Poll every 2 seconds continuously
+    return () => clearInterval(interval);
+  }, []);
 
-  // Automatic price updates - faster for testing
+  // Automatic price updates - faster for testing (always active)
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isMarketOpen(simulateMarketOpen)) {
-        setPriceUpdateTrigger(prev => prev + 1);
-      }
+      setPriceUpdateTrigger(prev => prev + 1);
     }, 1500); // Update every 1.5 seconds (reduced from 3 seconds)
 
     return () => clearInterval(interval);
-  }, [simulateMarketOpen]);
+  }, []);
 
   // Toast functions
   const addToast = (message: string, type: 'success' | 'error' | 'info') => {
@@ -817,7 +802,7 @@ function App(): JSX.Element {
     
     const positions = calculatePositions();
     const currentMarketValue = positions.reduce((sum, pos) => {
-      const currentPrice = getRealisticPrice(pos.symbol, pos.avgPrice, simulateMarketOpen);
+      const currentPrice = getRealisticPrice(pos.symbol, pos.avgPrice);
       return sum + (pos.quantity * currentPrice);
     }, 0);
     
@@ -884,12 +869,7 @@ function App(): JSX.Element {
       return;
     }
 
-    // Check market hours for realism
-    if (!isMarketOpen(simulateMarketOpen)) {
-      addToast('Market is currently closed. Order cannot be executed until market opens (9:30 AM - 4:00 PM, weekdays only).', 'error');
-      setLoading(false);
-      return;
-    }
+    // Market always open for demo/testing - no restrictions
 
     setLoading(true);
     setMessage('');
@@ -907,7 +887,7 @@ function App(): JSX.Element {
       if (orderType === 'LIMIT') {
         addToast(`${side} LIMIT order submitted! ${quantity} shares of ${symbol.toUpperCase()} at $${price!.toFixed(2)} (pending execution)`, 'success');
       } else {
-        const executionPrice = getBidAskPrice(symbol.toUpperCase(), price || 100, side, simulateMarketOpen);
+        const executionPrice = getBidAskPrice(symbol.toUpperCase(), price || 100, side);
         addToast(`${side} MARKET order placed! ${quantity} shares of ${symbol.toUpperCase()} at ~$${executionPrice.toFixed(2)}`, 'success');
       }
       
@@ -915,7 +895,7 @@ function App(): JSX.Element {
       setOrderCount(orderCount + 1);
       const displayPrice = orderType === 'LIMIT' ? 
         price! : 
-        getBidAskPrice(symbol.toUpperCase(), price || 100, side, simulateMarketOpen);
+        getBidAskPrice(symbol.toUpperCase(), price || 100, side);
         
       setRecentOrders(prev => [{
         symbol: symbol.toUpperCase(),
@@ -1011,42 +991,11 @@ function App(): JSX.Element {
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <span style={{ 
                   fontSize: '14px', 
-                  color: isMarketOpen(simulateMarketOpen) ? '#68d391' : '#fc8181',
+                  color: '#68d391',
                   fontWeight: 'bold'
                 }}>
-                  Market {isMarketOpen(simulateMarketOpen) ? 'OPEN' : 'CLOSED'} 
-                  {simulateMarketOpen && !isMarketOpen() && ' (SIMULATED)'}
+                  Market OPEN (24/7 Demo Mode)
                 </span>
-                <button 
-                  onClick={async () => {
-                    try {
-                      const endpoint = simulateMarketOpen ? '/stop' : '/start';
-                      const response = await fetch(`http://localhost:4000/api/simulator${endpoint}`, {
-                        method: 'POST'
-                      });
-                      if (response.ok) {
-                        const result = await response.json();
-                        setSimulateMarketOpen(result.isRunning);
-                        console.log('Simulator toggled:', result);
-                      }
-                    } catch (error) {
-                      console.error('Failed to toggle simulator:', error);
-                    }
-                  }}
-                  style={{
-                    padding: '4px 8px',
-                    fontSize: '11px',
-                    fontWeight: '600',
-                    borderRadius: '4px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: simulateMarketOpen ? 'rgba(72, 187, 120, 0.3)' : 'rgba(102, 126, 234, 0.3)',
-                    color: simulateMarketOpen ? '#68d391' : '#a78bfa',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  {simulateMarketOpen ? 'Disable Sim' : 'Enable Sim'}
-                </button>
               </div>
             </div>
             <p>Real-time market data for all available instruments. Prices update every 3 seconds during market hours.</p>
@@ -1090,7 +1039,7 @@ function App(): JSX.Element {
                     {availableStocks.map((stock) => {
                       // Use backend prices if available, otherwise fall back to local simulation
                       const backendPrice = backendPrices[stock.symbol];
-                      const currentPrice = backendPrice ? backendPrice.price : getRealisticPrice(stock.symbol, stock.basePrice, simulateMarketOpen);
+                      const currentPrice = backendPrice ? backendPrice.price : getRealisticPrice(stock.symbol, stock.basePrice);
                       const priceChange = backendPrice ? backendPrice.change : (currentPrice - stock.basePrice);
                       const priceChangePercent = backendPrice ? backendPrice.changePercent : ((currentPrice - stock.basePrice) / stock.basePrice) * 100;
                       const isPositive = priceChange >= 0;
@@ -1225,7 +1174,7 @@ function App(): JSX.Element {
                         <strong>Total Instruments:</strong> {availableStocks.length}
                       </div>
                       <div>
-                        <strong>Market Status:</strong> {isMarketOpen(simulateMarketOpen) ? '🟢 Open' : '🔴 Closed'}
+                        <strong>Market Status:</strong> 🟢 Open (24/7 Demo)
                       </div>
                       <div>
                         <strong>Update Frequency:</strong> Every 3 seconds
@@ -1250,75 +1199,25 @@ function App(): JSX.Element {
               padding: '8px 12px', 
               borderRadius: '6px',
               marginBottom: '15px',
-              backgroundColor: isMarketOpen(simulateMarketOpen) ? 'rgba(72, 187, 120, 0.2)' : 'rgba(245, 101, 101, 0.2)',
-              border: `1px solid ${isMarketOpen(simulateMarketOpen) ? 'rgba(72, 187, 120, 0.4)' : 'rgba(245, 101, 101, 0.4)'}`
+              backgroundColor: 'rgba(72, 187, 120, 0.2)',
+              border: '1px solid rgba(72, 187, 120, 0.4)'
             }}>
               <div style={{ 
                 width: '8px', 
                 height: '8px', 
                 borderRadius: '50%', 
-                backgroundColor: isMarketOpen(simulateMarketOpen) ? '#48bb78' : '#f56565',
+                backgroundColor: '#48bb78',
                 marginRight: '8px'
               }}></div>
               <span style={{ 
                 fontSize: '14px', 
                 fontWeight: '600',
-                color: isMarketOpen(simulateMarketOpen) ? '#68d391' : '#fc8181'
+                color: '#68d391'
               }}>
-                Market {isMarketOpen(simulateMarketOpen) ? 'OPEN' : 'CLOSED'} 
-                {simulateMarketOpen && !isMarketOpen() && ' (SIMULATED)'}
+                Market OPEN (24/7 Demo Mode)
               </span>
-              {!isMarketOpen(simulateMarketOpen) && (
-                <span style={{ 
-                  fontSize: '12px', 
-                  color: '#a0aec0',
-                  marginLeft: '8px'
-                }}>
-                  (Hours: 9:30 AM - 4:00 PM)
-                </span>
-              )}
             </div>
             
-            <div style={{ marginBottom: '15px' }}>
-              <button 
-                onClick={async () => {
-                  try {
-                    const endpoint = simulateMarketOpen ? '/stop' : '/start';
-                    const response = await fetch(`http://localhost:4000/api/simulator${endpoint}`, {
-                      method: 'POST'
-                    });
-                    if (response.ok) {
-                      const result = await response.json();
-                      setSimulateMarketOpen(result.isRunning);
-                      console.log('Simulator toggled:', result);
-                    }
-                  } catch (error) {
-                    console.error('Failed to toggle simulator:', error);
-                  }
-                }}
-                style={{
-                  padding: '6px 12px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: simulateMarketOpen ? 'rgba(72, 187, 120, 0.3)' : 'rgba(102, 126, 234, 0.3)',
-                  color: simulateMarketOpen ? '#68d391' : '#a78bfa',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                {simulateMarketOpen ? '🟢 Simulation Mode ON' : '🔵 Enable Market Simulation'}
-              </button>
-              <span style={{
-                marginLeft: '8px',
-                fontSize: '11px',
-                color: '#a0aec0',
-                fontStyle: 'italic'
-              }}>
-                (Toggle to trade anytime for testing)
-              </span>
-            </div>
             
             {message && (
               <div style={{ 

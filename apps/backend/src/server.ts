@@ -32,7 +32,7 @@ const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 4001;
 
 // Helper function to check if simulator should be running based on saved state
 async function shouldSimulatorBeRunning(): Promise<boolean> {
