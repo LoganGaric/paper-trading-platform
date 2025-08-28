@@ -8,7 +8,9 @@ yarn-error.log*
 dist/
 build/
 
-# Environment variables
+# Environment variables (exclude all .env files except example)
+.env*
+!.env.example
 .env.local
 .env.*.local
 

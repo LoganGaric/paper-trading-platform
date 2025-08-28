@@ -618,16 +618,16 @@ const getRealisticPrice = (symbol: string, avgPrice: number, simulateOpen = fals
   const data = MARKET_DATA[symbol];
   const timeSinceUpdate = now - data.lastUpdate;
   
-  // Only update price if market is open and enough time has passed (2 seconds)
-  if (isMarketOpen(simulateOpen) && timeSinceUpdate > 2000) {
-    // More realistic price movement
-    const volatility = 0.012; // 1.2% typical movement
-    const trendInfluence = 0.7;
-    const randomInfluence = 0.3;
+  // Only update price if market is open and enough time has passed (1 second for faster testing)
+  if (isMarketOpen(simulateOpen) && timeSinceUpdate > 1000) {
+    // Increased volatility for testing and demonstration purposes
+    const volatility = 0.045; // 4.5% typical movement (increased from 1.2%)
+    const trendInfluence = 0.6; // Slightly less trend persistence
+    const randomInfluence = 0.4; // More randomness for dynamic testing
     
-    // Trend tends to persist but can reverse
-    if (Math.random() < 0.1) { // 10% chance to reverse trend
-      data.trend *= -0.5;
+    // Trend tends to persist but can reverse more frequently for dynamic testing
+    if (Math.random() < 0.15) { // 15% chance to reverse trend (increased from 10%)
+      data.trend *= -0.6; // Stronger reversals
     }
     
     // Calculate price change
@@ -638,9 +638,9 @@ const getRealisticPrice = (symbol: string, avgPrice: number, simulateOpen = fals
     // Apply movement
     data.currentPrice *= (1 + totalMove);
     
-    // Keep prices reasonable (within 20% of base price)
-    const maxPrice = data.basePrice * 1.2;
-    const minPrice = data.basePrice * 0.8;
+    // Allow larger price swings for testing (within 30% of base price)
+    const maxPrice = data.basePrice * 1.3;
+    const minPrice = data.basePrice * 0.7;
     data.currentPrice = Math.max(minPrice, Math.min(maxPrice, data.currentPrice));
     
     // Slowly decay trend toward zero (mean reversion)
@@ -777,13 +777,13 @@ function App(): JSX.Element {
     }
   }, [simulateMarketOpen]);
 
-  // Automatic price updates
+  // Automatic price updates - faster for testing
   useEffect(() => {
     const interval = setInterval(() => {
       if (isMarketOpen(simulateMarketOpen)) {
         setPriceUpdateTrigger(prev => prev + 1);
       }
-    }, 3000); // Update every 3 seconds
+    }, 1500); // Update every 1.5 seconds (reduced from 3 seconds)
 
     return () => clearInterval(interval);
   }, [simulateMarketOpen]);

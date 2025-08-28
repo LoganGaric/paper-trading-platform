@@ -44,14 +44,17 @@ export class ExecutionSimulator {
   private intervals: Map<string, NodeJS.Timeout> = new Map();
   private currentIndices: Map<string, number> = new Map();
 
+  // VOLATILITY CONFIGURATION FOR TESTING
+  // Adjust these values in the constructor to control market dynamics:
+
   constructor(prisma: PrismaClient, config: Partial<SimulationConfig> = {}) {
     this.prisma = prisma;
     this.config = {
-      bidAskSpreadBps: 20, // 0.2% spread
+      bidAskSpreadBps: 30, // 0.3% spread (increased for more dynamic testing)
       feePerShare: 0.005,
-      slippageBps: 5, // 0.05% slippage for market orders
-      playbackSpeedMs: 3000, // 3 second intervals
-      maxPartialFillPct: 0.3, // max 30% of order filled per tick
+      slippageBps: 8, // 0.08% slippage for market orders (increased)
+      playbackSpeedMs: 1500, // 1.5 second intervals (reduced from 3 seconds for faster testing)
+      maxPartialFillPct: 0.4, // max 40% of order filled per tick (increased for more activity)
       ...config
     };
   }
@@ -540,8 +543,8 @@ export class ExecutionSimulator {
       let currentIndex = this.currentIndices.get(symbol) || 0;
       
       // Add random offset to each stock's interval to prevent synchronization
-      // Base interval +/- 20% random variation
-      const randomOffset = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2 multiplier
+      // Increased variation for more dynamic testing: Base interval +/- 40% random variation
+      const randomOffset = 0.6 + (Math.random() * 0.8); // 0.6 to 1.4 multiplier (increased from 0.8-1.2)
       const stockInterval = Math.floor(this.config.playbackSpeedMs * randomOffset);
       
       const interval = setInterval(async () => {
