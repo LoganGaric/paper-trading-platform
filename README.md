@@ -395,25 +395,6 @@ ENABLE_METRICS=true
 - **Global Kill Switch**: Emergency trading halt
 - **Buying Power Checks**: Prevent over-leverage
 
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Make** your changes with tests
-4. **Run** the test suite (`npm test`)
-5. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-6. **Push** to the branch (`git push origin feature/amazing-feature`) 
-7. **Open** a Pull Request
-
-### Development Guidelines
-
-- **Code Style**: Follow ESLint + Prettier configurations
-- **Testing**: Maintain 100% test coverage for critical paths
-- **Documentation**: Update README and API docs for new features
-- **Security**: Follow OWASP guidelines, never commit secrets
-- **Performance**: Consider impact on order processing latency
 
 ## 📄 License
 
