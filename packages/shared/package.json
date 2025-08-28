@@ -1,0 +1,23 @@
+{
+  "name": "@paper-trading/shared",
+  "version": "1.0.0",
+  "description": "Shared types, schemas, and utilities",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.11.0",
+    "jest": "^29.7.0",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,72 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Paper Trading Backend
+  - job_name: 'paper-trading-backend'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    honor_labels: true
+    
+  # Paper Trading Backend Health
+  - job_name: 'paper-trading-backend-health'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/health'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # PostgreSQL metrics (if pg_exporter is added)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    
+  # Redis metrics (if redis_exporter is added)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node.js application metrics
+  - job_name: 'paper-trading-app-metrics'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    honor_labels: true
+    relabel_configs:
+      - source_labels: [__name__]
+        target_label: service
+        replacement: 'paper-trading-backend'
+
+  # Custom business metrics
+  - job_name: 'paper-trading-business'
+    static_configs:
+      - targets: ['backend:3001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '(orders_created_total|order_value_dollars|risk_checks_total|position_updates_total).*'
+        target_label: metric_type
+        replacement: 'business'

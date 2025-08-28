@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  balance       Decimal   @db.Decimal(15, 2)
+  buyingPower   Decimal   @db.Decimal(15, 2)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  orders        Order[]
+  positions     Position[]
+  fills         Fill[]
+  
+  @@map("accounts")
+}
+
+model Instrument {
+  id            String    @id @default(cuid())
+  symbol        String    @unique
+  name          String
+  sector        String?
+  exchange      String
+  tickSize      Decimal   @db.Decimal(10, 6) @default(0.01)
+  lotSize       Int       @default(1)
+  referencePrice Decimal? @db.Decimal(10, 4)
+  price         Decimal   @db.Decimal(10, 4)
+  previousClose Decimal   @db.Decimal(10, 4)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  orders        Order[]
+  positions     Position[]
+  fills         Fill[]
+  marketData    MarketData[]
+  orderEvents   OrderEvent[]
+  
+  @@index([symbol])
+  @@index([isActive])
+  @@map("instruments")
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  accountId     String
+  instrumentId  String
+  type          OrderType
+  side          OrderSide
+  quantity      Int
+  price         Decimal?    @db.Decimal(10, 4)
+  status        OrderStatus @default(PENDING)
+  timeInForce   TimeInForce @default(DAY)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  filledAt      DateTime?
+  cancelledAt   DateTime?
+  
+  account       Account     @relation(fields: [accountId], references: [id])
+  instrument    Instrument  @relation(fields: [instrumentId], references: [id])
+  fills         Fill[]
+  orderEvents   OrderEvent[]
+  
+  @@index([accountId])
+  @@index([instrumentId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model Fill {
+  id           String     @id @default(cuid())
+  orderId      String
+  accountId    String
+  instrumentId String
+  quantity     Int
+  price        Decimal    @db.Decimal(10, 4)
+  side         OrderSide
+  executedAt   DateTime   @default(now())
+  
+  order        Order      @relation(fields: [orderId], references: [id])
+  account      Account    @relation(fields: [accountId], references: [id])
+  instrument   Instrument @relation(fields: [instrumentId], references: [id])
+  
+  @@index([orderId])
+  @@index([accountId])
+  @@index([instrumentId])
+  @@index([executedAt])
+  @@map("fills")
+}
+
+model Position {
+  id           String     @id @default(cuid())
+  accountId    String
+  instrumentId String
+  quantity     Int
+  avgPrice     Decimal    @db.Decimal(10, 4)
+  marketValue  Decimal    @db.Decimal(15, 2)
+  unrealizedPL Decimal    @db.Decimal(15, 2)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  
+  account      Account    @relation(fields: [accountId], references: [id])
+  instrument   Instrument @relation(fields: [instrumentId], references: [id])
+  
+  @@unique([accountId, instrumentId])
+  @@index([accountId])
+  @@map("positions")
+}
+
+model MarketData {
+  id           String     @id @default(cuid())
+  instrumentId String
+  timestamp    DateTime
+  open         Decimal    @db.Decimal(10, 4)
+  high         Decimal    @db.Decimal(10, 4)
+  low          Decimal    @db.Decimal(10, 4)
+  close        Decimal    @db.Decimal(10, 4)
+  volume       Int
+  
+  instrument   Instrument @relation(fields: [instrumentId], references: [id])
+  
+  @@unique([instrumentId, timestamp])
+  @@index([instrumentId])
+  @@index([timestamp])
+  @@map("market_data")
+}
+
+model OrderEvent {
+  id           String     @id @default(cuid())
+  orderId      String
+  instrumentId String
+  type         EventType
+  payload      Json
+  timestamp    DateTime   @default(now())
+  
+  order        Order      @relation(fields: [orderId], references: [id])
+  instrument   Instrument @relation(fields: [instrumentId], references: [id])
+  
+  @@index([orderId])
+  @@index([instrumentId])
+  @@index([timestamp])
+  @@map("order_events")
+}
+
+enum OrderType {
+  MARKET
+  LIMIT
+  STOP
+  STOP_LIMIT
+}
+
+enum OrderSide {
+  BUY
+  SELL
+}
+
+enum OrderStatus {
+  PENDING
+  FILLED
+  PARTIALLY_FILLED
+  CANCELLED
+  REJECTED
+}
+
+enum TimeInForce {
+  DAY
+  GTC
+  IOC
+  FOK
+}
+
+model SimulatorState {
+  id                String     @id @default("singleton")  // Only one state record
+  isRunning         Boolean    @default(false)
+  currentIndices    Json       // Map of symbol -> current index position
+  playbackSpeedMs   Int        @default(3000)
+  bidAskSpreadBps   Int        @default(20)
+  feePerShare       Decimal    @db.Decimal(10, 6) @default(0.005)
+  slippageBps       Int        @default(5)
+  maxPartialFillPct Decimal    @db.Decimal(3, 2) @default(0.30)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  
+  @@map("simulator_state")
+}
+
+enum EventType {
+  ACCEPTED
+  REJECTED
+  PARTIALLY_FILLED
+  FILLED
+  CANCELED
+}
