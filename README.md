@@ -48,6 +48,49 @@ A production-ready, full-stack TypeScript paper trading platform with real-time 
 - **CI/CD**: GitHub Actions with automated testing and deployment
 - **Reverse Proxy**: Nginx with SSL termination and load balancing
 
+## 🚀 Deployment Options
+
+### 💻 Local Development (Recommended)
+
+**For the best experience**, run the platform locally to access all advanced features:
+
+- ✅ **Full market simulation** with WebSocket real-time updates
+- ✅ **Advanced matching engine** with partial fills
+- ✅ **No performance delays** - instant response times
+- ✅ **Complete feature set** including background market simulation
+- ✅ **Comprehensive monitoring** with Prometheus & Grafana
+
+### ☁️ Cloud Demo (Vercel)
+
+**Quick demo deployment** available on Vercel with some limitations:
+
+- ✅ **Zero setup required** - just visit the URL
+- ✅ **Basic trading functionality** with order placement and tracking
+- ✅ **Real market data** with current August 2025 stock prices
+- ⚠️ **Simplified simulation** - ±2% random price movements only
+- ⚠️ **Cold start delays** - first load may take 10-30 seconds
+- ⚠️ **No WebSocket support** - REST API only
+- ⚠️ **Intermittent performance** due to serverless limitations
+
+**Live Demo**: [Paper Trading Platform](https://paper-trading-platform-g5vrw7wnm-logan-garics-projects.vercel.app) *(May require 30s initial load)*
+
+**API Endpoint**: [Backend API](https://paper-trading-platform-logangaric.vercel.app)
+
+### Feature Comparison
+
+| Feature | Local Development | Cloud (Vercel) |
+|---------|------------------|----------------|
+| **Market Simulation** | Historical data + WebSocket updates | ±2% random movements |
+| **Performance** | Instant response | 10-30s cold starts |
+| **Order Execution** | Advanced matching engine | Basic fill logic |
+| **Real-time Updates** | WebSocket streaming | 2-second polling |
+| **Setup Time** | 5 minutes (Docker required) | 0 minutes |
+| **Reliability** | 100% uptime | Intermittent delays |
+
+**Recommendation**: Use local development for serious testing, cloud demo for quick evaluation.
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
