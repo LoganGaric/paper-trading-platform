@@ -1,27 +1,14 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "src/server.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["prisma/**/*", "node_modules/.prisma/**/*"],
-        "maxLambdaSize": "50mb"
-      }
+  "functions": {
+    "src/server.ts": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "src/server.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "src/server.ts"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
   },
-  "installCommand": "npm install && npx prisma generate"
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/src/server.ts"
+    }
+  ]
 }
