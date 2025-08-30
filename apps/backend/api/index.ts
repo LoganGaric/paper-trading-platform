@@ -6,8 +6,14 @@ import dotenv from 'dotenv';
 // Load environment variables
 dotenv.config();
 
-// Initialize Prisma
-const prisma = new PrismaClient();
+// Initialize Prisma with proper configuration for serverless
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+});
 
 const app = express();
 
