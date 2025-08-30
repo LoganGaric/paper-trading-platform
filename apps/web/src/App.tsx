@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiClient } from './api/client';
 
 // Demo account ID - matches the seeded account in database
-const DEMO_ACCOUNT_ID = 'cmet25ndn000013oj3yflwmti';
+const DEMO_ACCOUNT_ID = 'cmexnwhhm00003hl9iaihxvtg';
 const symbolOrder = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'NVDA', 'SPY'];
 
 const BlotterSection: React.FC<{
