@@ -46,6 +46,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// Keep-alive endpoint for cron job
+app.get('/api/keepalive', (req, res) => {
+  res.json({ status: 'alive', timestamp: new Date().toISOString() });
+});
+
 // Simple orders endpoint
 app.get('/api/orders', async (req, res) => {
   try {
