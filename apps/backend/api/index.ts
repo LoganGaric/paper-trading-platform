@@ -82,17 +82,41 @@ app.post('/api/orders', async (req, res) => {
       return res.status(404).json({ error: 'Instrument not found' });
     }
 
+    // Determine if order should be filled immediately
+    const currentPrice = parseFloat(instrument.price);
+    const orderPrice = price ? parseFloat(price) : null;
+    const orderType = type.toUpperCase();
+    const orderSide = side.toUpperCase();
+    
+    let shouldFill = false;
+    let fillPrice = currentPrice;
+    
+    if (orderType === 'MARKET') {
+      // Market orders always fill at current price
+      shouldFill = true;
+      fillPrice = currentPrice;
+    } else if (orderType === 'LIMIT' && orderPrice) {
+      // Limit orders fill only if price condition is met
+      if (orderSide === 'BUY' && currentPrice <= orderPrice) {
+        shouldFill = true;
+        fillPrice = Math.min(currentPrice, orderPrice);
+      } else if (orderSide === 'SELL' && currentPrice >= orderPrice) {
+        shouldFill = true;
+        fillPrice = Math.max(currentPrice, orderPrice);
+      }
+    }
+
     // Create the order
     const order = await prisma.order.create({
       data: {
         accountId: String(accountId),
         instrumentId: instrument.id,
-        type: type.toUpperCase(),
-        side: side.toUpperCase(),
+        type: orderType,
+        side: orderSide,
         quantity: parseInt(quantity),
-        price: price ? parseFloat(price) : null,
-        status: 'FILLED', // Auto-fill orders for demo
-        filledAt: new Date()
+        price: orderPrice,
+        status: shouldFill ? 'FILLED' : 'PENDING',
+        filledAt: shouldFill ? new Date() : null
       },
       include: {
         instrument: true,
@@ -100,21 +124,24 @@ app.post('/api/orders', async (req, res) => {
       }
     });
 
-    // Create a fill record
-    const fillPrice = price ? parseFloat(price) : parseFloat(instrument.price);
-    const fill = await prisma.fill.create({
-      data: {
-        orderId: order.id,
-        accountId: String(accountId),
-        instrumentId: instrument.id,
-        quantity: parseInt(quantity),
-        price: fillPrice,
-        side: side.toUpperCase(),
-        executedAt: new Date()
-      }
-    });
+    let fill = null;
+    
+    // Only create fill and update positions if order should be filled
+    if (shouldFill) {
+      // Create a fill record
+      fill = await prisma.fill.create({
+        data: {
+          orderId: order.id,
+          accountId: String(accountId),
+          instrumentId: instrument.id,
+          quantity: parseInt(quantity),
+          price: fillPrice,
+          side: orderSide,
+          executedAt: new Date()
+        }
+      });
 
-    // Update or create position
+      // Update or create position
     const existingPosition = await prisma.position.findUnique({
       where: {
         accountId_instrumentId: {
@@ -165,8 +192,9 @@ app.post('/api/orders', async (req, res) => {
         }
       });
     }
+    }
 
-    res.json({ ...order, fills: [fill] });
+    res.json({ ...order, fills: fill ? [fill] : [] });
   } catch (error) {
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Internal server error' });
