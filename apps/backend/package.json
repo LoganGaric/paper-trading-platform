@@ -5,14 +5,17 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "npm run build -w ../packages/shared && prisma generate && tsc",
     "start": "node dist/server.js",
     "test": "jest",
     "type-check": "tsc --noEmit",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset",
     "db:seed": "tsx src/prisma/seed.ts",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "vercel-build": "prisma generate && prisma migrate deploy && npm run build",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.9.0",

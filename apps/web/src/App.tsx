@@ -15,7 +15,7 @@ const BlotterSection: React.FC<{
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
         const ordersData = await response.json();
         setOrders(ordersData.slice(0, 10)); // Show last 10 orders
       } catch (error) {
@@ -95,7 +95,7 @@ const BlotterSection: React.FC<{
         <button 
           onClick={async () => {
             try {
-              const response = await fetch(`http://localhost:4000/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
+              const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
               const ordersData = await response.json();
               setOrders(ordersData.slice(0, 10));
             } catch (error) {
@@ -333,7 +333,7 @@ const PositionsSection: React.FC<{
 
   const fetchPositions = async () => {
     try {
-      const response = await fetch(`http://localhost:4000/api/positions?accountId=${DEMO_ACCOUNT_ID}`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/positions?accountId=${DEMO_ACCOUNT_ID}`);
       const positionsData = await response.json();
       setPositions(positionsData);
     } catch (error) {
@@ -359,7 +359,7 @@ const PositionsSection: React.FC<{
 
     setResetting(true);
     try {
-      const response = await fetch(`http://localhost:4000/api/positions?accountId=${DEMO_ACCOUNT_ID}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/positions?accountId=${DEMO_ACCOUNT_ID}`, {
         method: 'DELETE',
       });
 
@@ -725,7 +725,7 @@ function App(): JSX.Element {
   // Function to fetch current prices from backend
   const fetchBackendPrices = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/simulator/status');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/simulator/status`);
       if (response.ok) {
         const status = await response.json();
         const prices: Record<string, {price: number, previousClose: number, change: number, changePercent: number}> = {};
@@ -1020,12 +1020,12 @@ function App(): JSX.Element {
                     basePrice: backendPrices[symbol].price
                   }))
                 : [
-                    { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', basePrice: 186.35 },
-                    { symbol: 'TSLA', name: 'Tesla, Inc.', sector: 'Automotive', basePrice: 249.95 },
-                    { symbol: 'GOOGL', name: 'Alphabet Inc.', sector: 'Technology', basePrice: 142.87 },
-                    { symbol: 'MSFT', name: 'Microsoft Corporation', sector: 'Technology', basePrice: 428.92 },
-                    { symbol: 'NVDA', name: 'NVIDIA Corporation', sector: 'Technology', basePrice: 875.30 },
-                    { symbol: 'SPY', name: 'SPDR S&P 500 ETF', sector: 'ETF', basePrice: 547.89 }
+                    { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', basePrice: 229.15 },
+                    { symbol: 'TSLA', name: 'Tesla, Inc.', sector: 'Automotive', basePrice: 333.25 },
+                    { symbol: 'GOOGL', name: 'Alphabet Inc.', sector: 'Technology', basePrice: 212.91 },
+                    { symbol: 'MSFT', name: 'Microsoft Corporation', sector: 'Technology', basePrice: 213.53 },
+                    { symbol: 'NVDA', name: 'NVIDIA Corporation', sector: 'Technology', basePrice: 180.78 },
+                    { symbol: 'SPY', name: 'SPDR S&P 500 ETF', sector: 'ETF', basePrice: 646.03 }
                   ];
 
               return (
