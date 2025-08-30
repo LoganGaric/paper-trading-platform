@@ -307,16 +307,6 @@ const BlotterSection: React.FC<{
               });
             })()}
           </div>
-          {Object.keys(backendPrices).length === 0 && (
-            <div style={{
-              textAlign: 'center',
-              padding: '20px',
-              color: '#a0aec0',
-              fontStyle: 'italic'
-            }}>
-              Enable Market Simulation to see live prices
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -725,7 +715,8 @@ function App(): JSX.Element {
   // Function to fetch current prices from backend
   const fetchBackendPrices = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/simulator/status`);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/simulator/status`);
       if (response.ok) {
         const status = await response.json();
         const prices: Record<string, {price: number, previousClose: number, change: number, changePercent: number}> = {};
@@ -1398,16 +1389,6 @@ function App(): JSX.Element {
                   });
                 })()}
               </div>
-              {Object.keys(backendPrices).length === 0 && (
-                <div style={{
-                  textAlign: 'center',
-                  padding: '20px',
-                  color: '#a0aec0',
-                  fontStyle: 'italic'
-                }}>
-                  Enable Market Simulation to see live prices
-                </div>
-              )}
             </div>
           </div>
         ) : currentPage === 'blotter' ? (

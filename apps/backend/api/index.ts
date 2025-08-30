@@ -13,7 +13,11 @@ const app = express();
 
 // Basic middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: process.env.CORS_ORIGIN === '*' ? '*' : [
+    process.env.CORS_ORIGIN,
+    'https://paper-trading-platform-fz6rfgomb-logan-garics-projects.vercel.app',
+    /\.vercel\.app$/
+  ].filter(Boolean),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
