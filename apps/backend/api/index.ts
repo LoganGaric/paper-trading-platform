@@ -64,6 +64,62 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+// Create order endpoint
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { accountId, ticker, type, side, quantity, price } = req.body;
+
+    if (!accountId || !ticker || !type || !side || !quantity) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Find the instrument by symbol
+    const instrument = await prisma.instrument.findUnique({
+      where: { symbol: ticker }
+    });
+
+    if (!instrument) {
+      return res.status(404).json({ error: 'Instrument not found' });
+    }
+
+    // Create the order
+    const order = await prisma.order.create({
+      data: {
+        accountId: String(accountId),
+        instrumentId: instrument.id,
+        type: type.toUpperCase(),
+        side: side.toUpperCase(),
+        quantity: parseInt(quantity),
+        price: price ? parseFloat(price) : null,
+        status: 'FILLED', // Auto-fill orders for demo
+        filledAt: new Date()
+      },
+      include: {
+        instrument: true,
+        fills: true
+      }
+    });
+
+    // Create a fill record
+    const fill = await prisma.fill.create({
+      data: {
+        orderId: order.id,
+        accountId: String(accountId),
+        instrumentId: instrument.id,
+        quantity: parseInt(quantity),
+        price: price ? parseFloat(price) : parseFloat(instrument.price),
+        side: side.toUpperCase(),
+        executedAt: new Date()
+      }
+    });
+
+    res.json({ ...order, fills: [fill] });
+  } catch (error) {
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Simple positions endpoint  
 app.get('/api/positions', async (req, res) => {
   try {
