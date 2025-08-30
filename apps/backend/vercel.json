@@ -5,7 +5,8 @@
       "src": "src/server.ts",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["prisma/**/*", "node_modules/.prisma/**/*"]
+        "includeFiles": ["prisma/**/*", "node_modules/.prisma/**/*"],
+        "maxLambdaSize": "50mb"
       }
     }
   ],
@@ -21,11 +22,6 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "src/server.ts": {
-      "maxDuration": 30
-    }
   },
   "installCommand": "npm install && npx prisma generate"
 }
