@@ -1004,7 +1004,7 @@ function App(): JSX.Element {
                     symbol,
                     name: stockInfo[symbol as keyof typeof stockInfo]?.name || symbol,
                     sector: stockInfo[symbol as keyof typeof stockInfo]?.sector || 'Unknown',
-                    basePrice: backendPrices[symbol].price
+                    basePrice: backendPrices[symbol].previousClose
                   }))
                 : [
                     { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', basePrice: 229.15 },
