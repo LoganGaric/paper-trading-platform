@@ -94,29 +94,24 @@ app.get('/api/simulator/status', async (req, res) => {
     });
 
     // Simulate price changes (±2% random movement)
-    const currentPrices = await Promise.all(instruments.map(async (inst) => {
+    const currentPrices = instruments.map((inst) => {
       const basePrice = Number(inst.referencePrice || inst.price);
       const volatility = 0.02; // 2% max movement
       const randomChange = (Math.random() - 0.5) * volatility;
       const newPrice = basePrice * (1 + randomChange);
       const previousClose = Number(inst.previousClose);
       
-      // Update the instrument with new price (optional, for persistence)
-      try {
-        await prisma.instrument.update({
-          where: { id: inst.id },
-          data: { price: newPrice }
-        });
-      } catch (error) {
-        console.warn('Could not update price:', error);
-      }
+      const change = newPrice - previousClose;
+      const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
       
       return {
         symbol: inst.symbol,
         price: Number(newPrice.toFixed(2)),
-        previousClose: previousClose
+        previousClose: previousClose,
+        change: Number(change.toFixed(2)),
+        changePercent: Number(changePercent.toFixed(2))
       };
-    }));
+    });
 
     res.json({
       isRunning: true,
