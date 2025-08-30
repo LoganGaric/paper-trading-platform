@@ -184,5 +184,15 @@ const startServer = async (): Promise<void> => {
 // Setup graceful shutdown
 setupGracefulShutdown(server);
 
-// Start the server
-startServer();
+// Start the server (only in non-serverless environments)
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  startServer();
+}
+
+// Initialize database for serverless functions
+if (process.env.VERCEL) {
+  prisma.$connect().catch(console.error);
+}
+
+// Export for Vercel serverless functions
+export default app;
