@@ -3,6 +3,7 @@ import { apiClient } from './api/client';
 
 // Demo account ID - matches the seeded account in database
 const DEMO_ACCOUNT_ID = 'cmet25ndn000013oj3yflwmti';
+const symbolOrder = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'NVDA', 'SPY'];
 
 const BlotterSection: React.FC<{
   backendPrices: Record<string, {price: number, previousClose: number, change: number, changePercent: number}>,
@@ -557,7 +558,7 @@ const PositionsSection: React.FC<{
             });
           })()}
         </div>
-        {Object.keys(backendPrices).length === 0 && (
+        {symbolOrder.filter(symbol => backendPrices[symbol]).length === 0 && (
           <div style={{
             textAlign: 'center',
             padding: '20px',
@@ -999,8 +1000,8 @@ function App(): JSX.Element {
               };
               
               // Get available stocks from backend prices or fallback to static list
-              const availableStocks = Object.keys(backendPrices).length > 0 
-                ? Object.keys(backendPrices).map(symbol => ({
+              const availableStocks = symbolOrder.filter(symbol => backendPrices[symbol]).length > 0 
+                ? symbolOrder.filter(symbol => backendPrices[symbol]).map(symbol => ({
                     symbol,
                     name: stockInfo[symbol as keyof typeof stockInfo]?.name || symbol,
                     sector: stockInfo[symbol as keyof typeof stockInfo]?.sector || 'Unknown',
@@ -1024,11 +1025,11 @@ function App(): JSX.Element {
                     marginBottom: '25px'
                   }}>
                     {availableStocks.map((stock) => {
-                      // Use backend prices if available, otherwise fall back to local simulation
+                      // Use backend prices directly
                       const backendPrice = backendPrices[stock.symbol];
-                      const currentPrice = backendPrice ? backendPrice.price : getRealisticPrice(stock.symbol, stock.basePrice);
-                      const priceChange = backendPrice ? backendPrice.change : (currentPrice - stock.basePrice);
-                      const priceChangePercent = backendPrice ? backendPrice.changePercent : ((currentPrice - stock.basePrice) / stock.basePrice) * 100;
+                      const currentPrice = backendPrice.price;
+                      const priceChange = backendPrice.change;
+                      const priceChangePercent = backendPrice.changePercent;
                       const isPositive = priceChange >= 0;
                       
                       return (
@@ -1576,7 +1577,7 @@ function App(): JSX.Element {
                     });
                   })()}
                 </div>
-                {Object.keys(backendPrices).length === 0 && (
+                {symbolOrder.filter(symbol => backendPrices[symbol]).length === 0 && (
                   <div style={{
                     textAlign: 'center',
                     padding: '20px',
