@@ -722,15 +722,11 @@ function App(): JSX.Element {
         const prices: Record<string, {price: number, previousClose: number, change: number, changePercent: number}> = {};
         
         status.currentPrices.forEach((priceData: any) => {
-          const previousPrice = backendPrices[priceData.symbol]?.price || priceData.price;
-          const change = priceData.price - previousPrice;
-          const changePercent = previousPrice > 0 ? (change / previousPrice) * 100 : 0;
-          
           prices[priceData.symbol] = {
             price: priceData.price,
-            previousClose: previousPrice, // Keep the previous price as previous close
-            change,
-            changePercent
+            previousClose: priceData.previousClose,
+            change: priceData.change || 0,
+            changePercent: priceData.changePercent || 0
           };
         });
         
