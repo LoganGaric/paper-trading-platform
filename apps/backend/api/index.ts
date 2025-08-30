@@ -89,9 +89,11 @@ app.get('/api/positions', async (req, res) => {
 // Simple simulator status endpoint with price simulation
 app.get('/api/simulator/status', async (req, res) => {
   try {
+    console.log('Attempting to connect to database...');
     const instruments = await prisma.instrument.findMany({
       where: { isActive: true }
     });
+    console.log('Found instruments:', instruments.length);
 
     // Simulate price changes (±2% random movement)
     const currentPrices = instruments.map((inst) => {
@@ -119,7 +121,7 @@ app.get('/api/simulator/status', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching simulator status:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
