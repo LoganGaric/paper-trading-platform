@@ -101,17 +101,70 @@ app.post('/api/orders', async (req, res) => {
     });
 
     // Create a fill record
+    const fillPrice = price ? parseFloat(price) : parseFloat(instrument.price);
     const fill = await prisma.fill.create({
       data: {
         orderId: order.id,
         accountId: String(accountId),
         instrumentId: instrument.id,
         quantity: parseInt(quantity),
-        price: price ? parseFloat(price) : parseFloat(instrument.price),
+        price: fillPrice,
         side: side.toUpperCase(),
         executedAt: new Date()
       }
     });
+
+    // Update or create position
+    const existingPosition = await prisma.position.findUnique({
+      where: {
+        accountId_instrumentId: {
+          accountId: String(accountId),
+          instrumentId: instrument.id
+        }
+      }
+    });
+
+    if (existingPosition) {
+      // Update existing position
+      const newQuantity = side.toUpperCase() === 'BUY' 
+        ? existingPosition.quantity + parseInt(quantity)
+        : existingPosition.quantity - parseInt(quantity);
+      
+      const totalValue = (existingPosition.quantity * parseFloat(existingPosition.avgPrice.toString())) + 
+                        (parseInt(quantity) * fillPrice * (side.toUpperCase() === 'BUY' ? 1 : -1));
+      
+      const newAvgPrice = newQuantity > 0 ? totalValue / newQuantity : fillPrice;
+      const currentPrice = parseFloat(instrument.price);
+      const marketValue = newQuantity * currentPrice;
+      const unrealizedPL = (currentPrice - newAvgPrice) * newQuantity;
+
+      await prisma.position.update({
+        where: { id: existingPosition.id },
+        data: {
+          quantity: newQuantity,
+          avgPrice: newAvgPrice,
+          marketValue: marketValue,
+          unrealizedPL: unrealizedPL
+        }
+      });
+    } else {
+      // Create new position
+      const currentPrice = parseFloat(instrument.price);
+      const positionQuantity = side.toUpperCase() === 'BUY' ? parseInt(quantity) : -parseInt(quantity);
+      const marketValue = positionQuantity * currentPrice;
+      const unrealizedPL = (currentPrice - fillPrice) * positionQuantity;
+
+      await prisma.position.create({
+        data: {
+          accountId: String(accountId),
+          instrumentId: instrument.id,
+          quantity: positionQuantity,
+          avgPrice: fillPrice,
+          marketValue: marketValue,
+          unrealizedPL: unrealizedPL
+        }
+      });
+    }
 
     res.json({ ...order, fills: [fill] });
   } catch (error) {
