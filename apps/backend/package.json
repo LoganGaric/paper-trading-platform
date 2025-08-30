@@ -14,7 +14,7 @@
     "db:reset": "prisma migrate reset",
     "db:seed": "tsx src/prisma/seed.ts",
     "db:generate": "prisma generate",
-    "vercel-build": "prisma generate --schema=./prisma/schema.prisma && prisma migrate deploy --schema=./prisma/schema.prisma",
+    "vercel-build": "prisma generate --schema=./prisma/schema.prisma",
     "postinstall": "prisma generate"
   },
   "dependencies": {
