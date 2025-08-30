@@ -15,7 +15,7 @@ const BlotterSection: React.FC<{
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
+        const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '')}/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
         const ordersData = await response.json();
         setOrders(ordersData.slice(0, 10)); // Show last 10 orders
       } catch (error) {
@@ -95,7 +95,7 @@ const BlotterSection: React.FC<{
         <button 
           onClick={async () => {
             try {
-              const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
+              const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '')}/api/orders?accountId=${DEMO_ACCOUNT_ID}`);
               const ordersData = await response.json();
               setOrders(ordersData.slice(0, 10));
             } catch (error) {
@@ -323,7 +323,7 @@ const PositionsSection: React.FC<{
 
   const fetchPositions = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/positions?accountId=${DEMO_ACCOUNT_ID}`);
+      const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '')}/api/positions?accountId=${DEMO_ACCOUNT_ID}`);
       const positionsData = await response.json();
       setPositions(positionsData);
     } catch (error) {
@@ -349,7 +349,7 @@ const PositionsSection: React.FC<{
 
     setResetting(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/positions?accountId=${DEMO_ACCOUNT_ID}`, {
+      const response = await fetch(`${(import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '')}/api/positions?accountId=${DEMO_ACCOUNT_ID}`, {
         method: 'DELETE',
       });
 
@@ -715,7 +715,7 @@ function App(): JSX.Element {
   // Function to fetch current prices from backend
   const fetchBackendPrices = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+      const apiUrl = (import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '');
       const response = await fetch(`${apiUrl}/api/simulator/status`);
       if (response.ok) {
         const status = await response.json();

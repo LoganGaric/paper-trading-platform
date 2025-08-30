@@ -16,6 +16,7 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN === '*' ? '*' : [
     process.env.CORS_ORIGIN,
     'https://paper-trading-platform-fz6rfgomb-logan-garics-projects.vercel.app',
+    'https://paper-trading-platform-g5vrw7wnm-logan-garics-projects.vercel.app',
     /\.vercel\.app$/
   ].filter(Boolean),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
