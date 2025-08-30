@@ -558,7 +558,7 @@ const PositionsSection: React.FC<{
             });
           })()}
         </div>
-        {symbolOrder.filter(symbol => backendPrices[symbol]).length === 0 && (
+        {Object.keys(backendPrices).length === 0 && (
           <div style={{
             textAlign: 'center',
             padding: '20px',
@@ -1000,8 +1000,8 @@ function App(): JSX.Element {
               };
               
               // Get available stocks from backend prices or fallback to static list
-              const availableStocks = symbolOrder.filter(symbol => backendPrices[symbol]).length > 0 
-                ? symbolOrder.filter(symbol => backendPrices[symbol]).map(symbol => ({
+              const availableStocks = Object.keys(backendPrices).length > 0 
+                ? Object.keys(backendPrices).map(symbol => ({
                     symbol,
                     name: stockInfo[symbol as keyof typeof stockInfo]?.name || symbol,
                     sector: stockInfo[symbol as keyof typeof stockInfo]?.sector || 'Unknown',
@@ -1025,11 +1025,13 @@ function App(): JSX.Element {
                     marginBottom: '25px'
                   }}>
                     {availableStocks.map((stock) => {
-                      // Use backend prices directly
+                      // Use backend prices with safety check
                       const backendPrice = backendPrices[stock.symbol];
+                      if (!backendPrice) return null; // Skip if no price data
+                      
                       const currentPrice = backendPrice.price;
-                      const priceChange = backendPrice.change;
-                      const priceChangePercent = backendPrice.changePercent;
+                      const priceChange = backendPrice.change || 0;
+                      const priceChangePercent = backendPrice.changePercent || 0;
                       const isPositive = priceChange >= 0;
                       
                       return (
@@ -1577,7 +1579,7 @@ function App(): JSX.Element {
                     });
                   })()}
                 </div>
-                {symbolOrder.filter(symbol => backendPrices[symbol]).length === 0 && (
+                {Object.keys(backendPrices).length === 0 && (
                   <div style={{
                     textAlign: 'center',
                     padding: '20px',
