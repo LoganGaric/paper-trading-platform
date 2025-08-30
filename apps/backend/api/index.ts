@@ -109,6 +109,50 @@ app.get('/api/simulator/status', async (req, res) => {
   }
 });
 
+// Database seeding endpoint
+app.post('/api/seed', async (req, res) => {
+  try {
+    // Check if already seeded
+    const existingInstruments = await prisma.instrument.count();
+    if (existingInstruments > 0) {
+      return res.json({ message: 'Database already seeded', count: existingInstruments });
+    }
+
+    // Create demo account
+    const account = await prisma.account.create({
+      data: {
+        name: 'Demo Trading Account',
+        email: 'demo@papertrading.com',
+        balance: 100000.00,
+        buyingPower: 100000.00,
+      }
+    });
+
+    // Create instruments with current market data
+    const instrumentsData = [
+      { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', exchange: 'NASDAQ', tickSize: 0.01, lotSize: 1, referencePrice: 229.15, price: 229.15, previousClose: 227.76, isActive: true },
+      { symbol: 'TSLA', name: 'Tesla, Inc.', sector: 'Consumer Discretionary', exchange: 'NASDAQ', tickSize: 0.01, lotSize: 1, referencePrice: 333.25, price: 333.25, previousClose: 344.72, isActive: true },
+      { symbol: 'GOOGL', name: 'Alphabet Inc.', sector: 'Technology', exchange: 'NASDAQ', tickSize: 0.01, lotSize: 1, referencePrice: 212.91, price: 212.91, previousClose: 211.64, isActive: true },
+      { symbol: 'MSFT', name: 'Microsoft Corporation', sector: 'Technology', exchange: 'NASDAQ', tickSize: 0.01, lotSize: 1, referencePrice: 213.53, price: 213.53, previousClose: 212.37, isActive: true },
+      { symbol: 'NVDA', name: 'NVIDIA Corporation', sector: 'Technology', exchange: 'NASDAQ', tickSize: 0.01, lotSize: 1, referencePrice: 180.78, price: 180.78, previousClose: 181.60, isActive: true },
+      { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', sector: 'ETF', exchange: 'NYSEARCA', tickSize: 0.01, lotSize: 1, referencePrice: 646.03, price: 646.03, previousClose: 650.18, isActive: true }
+    ];
+
+    const instruments = await Promise.all(
+      instrumentsData.map(data => prisma.instrument.create({ data }))
+    );
+
+    res.json({ 
+      message: 'Database seeded successfully!',
+      account: account.id,
+      instruments: instruments.length
+    });
+  } catch (error) {
+    console.error('Error seeding database:', error);
+    res.status(500).json({ error: 'Seeding failed: ' + error.message });
+  }
+});
+
 // Error handler
 app.use((error: any, req: any, res: any, next: any) => {
   console.error('Unhandled error:', error);
