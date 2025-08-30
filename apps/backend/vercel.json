@@ -1,14 +1,15 @@
 {
-  "functions": {
-    "src/server.ts": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/src/server.ts"
+      "src": "apps/backend/src/server.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/backend/src/server.ts"
     }
   ]
 }
